@@ -27,16 +27,17 @@
       ],
       "@app/common/*": [
         "./libs/common/src/*"
+      ],
+      "@app/kafka": [
+        "./libs/kafka/src"
+      ],
+      "@app/kafka/*": [
+        "./libs/kafka/src/*"
       ]
     }
   },
-  "files": [],
-  "references": [
-    {
-      "path": "./apps/api-gateway/tsconfig.app.json"
-    },
-    {
-      "path": "./apps/auth-service/tsconfig.app.json"
-    }
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }

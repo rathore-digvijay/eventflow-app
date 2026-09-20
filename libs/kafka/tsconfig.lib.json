@@ -3,7 +3,7 @@
   "compilerOptions": {
     "declaration": true,
     "rootDir": "../..",
-    "outDir": "../../dist/apps/auth-service"
+    "outDir": "../../dist/libs/kafka"
   },
   "include": [
     "src/**/*"
