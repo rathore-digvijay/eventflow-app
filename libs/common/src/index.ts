@@ -11,7 +11,7 @@ export * from './interfaces/index';
 export * from './utils/index';
 
 // DTOs
-// export * from './dto';
+export * from './dto';
 
 // Interceptors
 // export * from './interceptors';
