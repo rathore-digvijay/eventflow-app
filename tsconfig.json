@@ -42,8 +42,13 @@
       ]
     }
   },
-  "exclude": [
-    "node_modules",
-    "dist"
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/eventflow-app/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/events-service/tsconfig.app.json"
+    }
   ]
 }

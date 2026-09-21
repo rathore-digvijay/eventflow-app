@@ -36,7 +36,7 @@ export class AuthService {
     async getProfile(token: string) {
         try {
             const response = await firstValueFrom(
-                this.httpService.post(`${this.httpServiceUrl}/profile`, {
+                this.httpService.get(`${this.httpServiceUrl}/profile`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
