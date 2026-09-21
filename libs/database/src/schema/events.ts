@@ -1,7 +1,19 @@
-import { pgEnum, pgTable, timestamp, uuid, varchar, text } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import {
+    pgTable,
+    uuid,
+    varchar,
+    text,
+    timestamp,
+    integer,
+    pgEnum,
+} from 'drizzle-orm/pg-core';
+import { users } from './users';
 
-export const statusEnum = pgEnum('status', ['DRAFT', 'PUBLISHED', 'CANCELLED']);
+export const eventStatusEnum = pgEnum('event_status', [
+    'DRAFT',
+    'PUBLISHED',
+    'CANCELLED',
+]);
 
 export const events = pgTable('events', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -9,8 +21,12 @@ export const events = pgTable('events', {
     description: text('description'),
     date: timestamp('date').notNull(),
     location: varchar('location', { length: 255 }).notNull(),
-    status: statusEnum('status').notNull().default('DRAFT'),
-    organiserId: uuid('organiser_id').notNull().references(() => users.id).notNull(),
+    capacity: integer('capacity').notNull(),
+    price: integer('price').default(0).notNull(),
+    status: eventStatusEnum('status').default('DRAFT').notNull(),
+    organiserId: uuid('organize_id')
+        .references(() => users.id)
+        .notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
