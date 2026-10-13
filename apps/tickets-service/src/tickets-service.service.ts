@@ -191,12 +191,12 @@ export class TicketsServiceService implements OnModuleInit {
     return { message: 'Ticket cancelled successfully' };
   }
 
-  async checkIn(ticketCode: string, organizerId: string) {
+  async checkIn(ticketCode: string, organiserId: string) {
     const [ticket] = await this.dbService.db
       .select({
         id: tickets.id,
         status: tickets.status,
-        eventId: events.id,
+        eventId: tickets.eventId,
         quantity: tickets.quantity,
       })
       .from(tickets)
@@ -213,7 +213,7 @@ export class TicketsServiceService implements OnModuleInit {
       .where(eq(events.id, ticket.eventId))
       .limit(1);
 
-    if (event.organizerId !== organizerId) {
+    if (event.organiserId !== organiserId) {
       throw new ForbiddenException(
         'You are not authorized to check in this ticket',
       );
@@ -256,7 +256,7 @@ export class TicketsServiceService implements OnModuleInit {
     };
   }
 
-  async findEventTickst(eventId: string, organizerId: string) {
+  async findEventTickst(eventId: string, organiserId: string) {
     const [event] = await this.dbService.db
       .select()
       .from(events)
@@ -267,7 +267,7 @@ export class TicketsServiceService implements OnModuleInit {
       throw new NotFoundException('Event not found');
     }
 
-    if (event.organizerId !== organizerId) {
+    if (event.organiserId !== organiserId) {
       throw new ForbiddenException(
         'You are not authorized to check in this ticket',
       );

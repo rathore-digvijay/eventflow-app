@@ -2,7 +2,6 @@ import {
     CheckInTicketDto,
     PurchaseTicketDto,
     SERVICES_PORTS,
-    TicketResponse,
 } from '@app/common';
 import { HttpService } from '@nestjs/axios';
 import { HttpException, Injectable } from '@nestjs/common';
@@ -19,10 +18,10 @@ export class TicketService {
     async purchase(
         data: PurchaseTicketDto,
         userId: string,
-    ): Promise<TicketResponse[]> {
+    ) {
         try {
             const response = await firstValueFrom(
-                this.httpService.post<TicketResponse[]>(
+                this.httpService.post(
                     `${this.ticketServiceUrl}/purchase`,
                     data,
                     {
@@ -37,10 +36,10 @@ export class TicketService {
         }
     }
 
-    async findMyTickets(userId: string): Promise<TicketResponse[]> {
+    async findMyTickets(userId: string) {
         try {
             const response = await firstValueFrom(
-                this.httpService.get<TicketResponse[]>(
+                this.httpService.get(
                     `${this.ticketServiceUrl}/my-tickets`,
                     {
                         headers: { 'x-user-id': userId },
@@ -54,10 +53,10 @@ export class TicketService {
         }
     }
 
-    async findOne(id: string, userId: string): Promise<TicketResponse> {
+    async findOne(id: string, userId: string) {
         try {
             const response = await firstValueFrom(
-                this.httpService.get<TicketResponse>(`${this.ticketServiceUrl}/${id}`, {
+                this.httpService.get(`${this.ticketServiceUrl}/${id}`, {
                     headers: { 'x-user-id': userId },
                 }),
             );
@@ -68,10 +67,10 @@ export class TicketService {
         }
     }
 
-    async cancel(id: string, userId: string): Promise<TicketResponse> {
+    async cancel(id: string, userId: string) {
         try {
             const response = await firstValueFrom(
-                this.httpService.post<TicketResponse>(
+                this.httpService.post(
                     `${this.ticketServiceUrl}/${id}/cancel`,
                     {},
                     { headers: { 'x-user-id': userId } },
@@ -85,15 +84,15 @@ export class TicketService {
 
     async checkIn(
         data: CheckInTicketDto,
-        organizerId: string,
-    ): Promise<TicketResponse> {
+        organiserId: string,
+    ) {
         try {
             const response = await firstValueFrom(
-                this.httpService.post<TicketResponse>(
+                this.httpService.post(
                     `${this.ticketServiceUrl}/check-in`,
                     data,
                     {
-                        headers: { 'x-user-id': organizerId },
+                        headers: { 'x-user-id': organiserId },
                     },
                 ),
             );
@@ -105,14 +104,14 @@ export class TicketService {
 
     async findEventTickets(
         eventId: string,
-        organizerId: string,
-    ): Promise<TicketResponse[]> {
+        organiserId: string,
+    ) {
         try {
             const response = await firstValueFrom(
-                this.httpService.get<TicketResponse[]>(
+                this.httpService.get(
                     `${this.ticketServiceUrl}/event/${eventId}`,
                     {
-                        headers: { 'x-user-id': organizerId },
+                        headers: { 'x-user-id': organiserId },
                     },
                 ),
             );

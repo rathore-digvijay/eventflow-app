@@ -46,19 +46,19 @@ export class TicketsServiceController {
   @Post('check-in')
   checkIn(
     @Body() checkInDto: CheckInTicketDto,
-    @Headers('x-user-id') organizerId: string,
+    @Headers('x-user-id') organiserId: string,
   ) {
     return this.ticketsServiceService.checkIn(
       checkInDto.ticketCode,
-      organizerId,
+      organiserId,
     );
   }
 
   @Get('event/:eventId')
   findEventTickets(
     @Param('eventId', ParseUUIDPipe) eventId: string,
-    @Headers('x-user-id') organizerId: string,
+    @Headers('x-user-id') organiserId: string,
   ) {
-    return this.ticketsServiceService.findEventTickst(eventId, organizerId);
+    return this.ticketsServiceService.findEventTickst(eventId, organiserId);
   }
 }
