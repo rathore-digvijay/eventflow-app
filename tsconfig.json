@@ -42,13 +42,13 @@
       ]
     }
   },
-  "include": [
-    "apps/**/*",
-    "libs/**/*",
-    "*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/eventflow-app/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/tickets-service/tsconfig.app.json"
+    }
   ]
 }
