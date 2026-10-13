@@ -1,4 +1,197 @@
-POST http://localhost:3001/register HTTP/1.1
+# EventFlow API requests for the VS Code REST Client extension (humao.rest-client).
+#
+# Run the API Gateway section top to bottom: later requests reuse the tokens and
+# ids captured from earlier responses (see the variables below).
+# Two users are used: an organiser who creates the event and checks people in,
+# and an attendee who buys tickets. Registering an existing email returns 409,
+# so on later runs start from the login requests.
+
+@gatewayUrl = http://localhost:3000
+@authServiceUrl = http://localhost:3001
+@eventsServiceUrl = http://localhost:3003
+@ticketsServiceUrl = http://localhost:3004
+@notificationServiceUrl = http://localhost:3006
+
+@organiserToken = {{organiserLogin.response.body.$.accessToken}}
+@organiserId = {{organiserLogin.response.body.$.user.id}}
+@attendeeToken = {{attendeeLogin.response.body.$.accessToken}}
+@attendeeId = {{attendeeLogin.response.body.$.user.id}}
+@eventId = {{myEvents.response.body.$[0].id}}
+@ticketId = {{purchaseTicket.response.body.$.ticket.id}}
+@ticketCode = {{purchaseTicket.response.body.$.ticket.ticketCode}}
+@ticketToCancelId = {{purchaseTicketToCancel.response.body.$.ticket.id}}
+
+
+#################################################################
+# API Gateway (public API)
+#################################################################
+
+### Gateway status
+GET {{gatewayUrl}}/ HTTP/1.1
+
+
+# ---------------------------- Auth ----------------------------
+
+### Register organiser
+POST {{gatewayUrl}}/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Olivia Organiser",
+  "email": "organiser@example.com",
+  "password": "password123"
+}
+
+### Register attendee
+POST {{gatewayUrl}}/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Aarav Attendee",
+  "email": "attendee@example.com",
+  "password": "password123"
+}
+
+### Login organiser
+# @name organiserLogin
+POST {{gatewayUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "organiser@example.com",
+  "password": "password123"
+}
+
+### Login attendee
+# @name attendeeLogin
+POST {{gatewayUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "attendee@example.com",
+  "password": "password123"
+}
+
+### Get profile
+# The gateway adds the "Bearer " prefix itself, so send the bare token here.
+GET {{gatewayUrl}}/auth/profile HTTP/1.1
+Authorization: {{organiserToken}}
+
+
+# --------------------------- Events ---------------------------
+
+### Create event (organiser)
+# The response has no body, so eventId is taken from "My events" below.
+POST {{gatewayUrl}}/events HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+Content-Type: application/json
+
+{
+  "title": "NestJS Meetup Bangalore",
+  "description": "An evening of talks on microservices, Kafka and event-driven design.",
+  "date": "2026-12-12T18:30:00.000Z",
+  "location": "Koramangala, Bangalore",
+  "capacity": 200,
+  "price": 499
+}
+
+### My events (organiser)
+# eventId = the first event in this list.
+# @name myEvents
+GET {{gatewayUrl}}/events/my-events HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+
+### Get event by id
+GET {{gatewayUrl}}/events/{{eventId}} HTTP/1.1
+
+### Update event (organiser, any subset of the create fields)
+PUT {{gatewayUrl}}/events/{{eventId}} HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+Content-Type: application/json
+
+{
+  "title": "NestJS Meetup Bangalore: Winter Edition",
+  "capacity": 250,
+  "price": 599
+}
+
+### Publish event (organiser)
+POST {{gatewayUrl}}/events/{{eventId}}/publish HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+
+### List published events (public)
+GET {{gatewayUrl}}/events HTTP/1.1
+
+
+# --------------------------- Tickets --------------------------
+
+### Purchase tickets (attendee, quantity 1-10, event must be published)
+# @name purchaseTicket
+POST {{gatewayUrl}}/tickets/purchase HTTP/1.1
+Authorization: Bearer {{attendeeToken}}
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "quantity": 2
+}
+
+### My tickets (attendee)
+GET {{gatewayUrl}}/tickets/my-tickets HTTP/1.1
+Authorization: Bearer {{attendeeToken}}
+
+### Get ticket by id (attendee)
+GET {{gatewayUrl}}/tickets/{{ticketId}} HTTP/1.1
+Authorization: Bearer {{attendeeToken}}
+
+### Check in ticket by code (organiser of the event)
+POST {{gatewayUrl}}/tickets/check-in HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+Content-Type: application/json
+
+{
+  "ticketCode": "{{ticketCode}}"
+}
+
+### List tickets for an event (organiser of the event)
+GET {{gatewayUrl}}/tickets/event/{{eventId}} HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+
+### Purchase a second ticket to cancel (attendee)
+# A checked-in ticket can't be cancelled, so cancellation uses a separate ticket.
+# @name purchaseTicketToCancel
+POST {{gatewayUrl}}/tickets/purchase HTTP/1.1
+Authorization: Bearer {{attendeeToken}}
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "quantity": 1
+}
+
+### Cancel ticket (attendee)
+POST {{gatewayUrl}}/tickets/{{ticketToCancelId}}/cancel HTTP/1.1
+Authorization: Bearer {{attendeeToken}}
+
+
+# --------------------- Event cancellation ---------------------
+
+### Cancel event (organiser). Run last: tickets can't be bought afterwards.
+POST {{gatewayUrl}}/events/{{eventId}}/cancel HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+
+
+#################################################################
+# Direct service calls (bypass the gateway, useful for debugging)
+#
+# Domain services trust the x-user-id / x-user-role headers that the
+# gateway normally sets. These reuse the ids captured above.
+#################################################################
+
+# ------------------- Auth service (:3001) ---------------------
+
+### [auth-service] Register
+POST {{authServiceUrl}}/register HTTP/1.1
 Content-Type: application/json
 
 {
@@ -6,3 +199,107 @@ Content-Type: application/json
   "email": "testuser@example.com",
   "password": "password123"
 }
+
+### [auth-service] Login
+POST {{authServiceUrl}}/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "password123"
+}
+
+### [auth-service] Profile
+GET {{authServiceUrl}}/profile HTTP/1.1
+Authorization: Bearer {{organiserToken}}
+
+
+# ------------------ Events service (:3003) --------------------
+
+### [events-service] Create event
+POST {{eventsServiceUrl}}/ HTTP/1.1
+x-user-id: {{organiserId}}
+Content-Type: application/json
+
+{
+  "title": "Kafka Deep Dive Workshop",
+  "description": "Hands-on workshop on partitions, consumer groups and exactly-once delivery.",
+  "date": "2027-01-20T10:00:00.000Z",
+  "location": "Online",
+  "capacity": 50,
+  "price": 0
+}
+
+### [events-service] List published events
+GET {{eventsServiceUrl}}/ HTTP/1.1
+
+### [events-service] My events
+GET {{eventsServiceUrl}}/my-events HTTP/1.1
+x-user-id: {{organiserId}}
+
+### [events-service] Get event by id
+GET {{eventsServiceUrl}}/{{eventId}} HTTP/1.1
+
+### [events-service] Update event
+PUT {{eventsServiceUrl}}/{{eventId}} HTTP/1.1
+x-user-id: {{organiserId}}
+x-user-role: USER
+Content-Type: application/json
+
+{
+  "location": "Indiranagar, Bangalore"
+}
+
+### [events-service] Publish event
+POST {{eventsServiceUrl}}/{{eventId}}/publish HTTP/1.1
+x-user-id: {{organiserId}}
+x-user-role: USER
+
+### [events-service] Cancel event
+POST {{eventsServiceUrl}}/{{eventId}}/cancel HTTP/1.1
+x-user-id: {{organiserId}}
+x-user-role: USER
+
+
+# ------------------ Tickets service (:3004) -------------------
+
+### [tickets-service] Purchase tickets
+POST {{ticketsServiceUrl}}/purchase HTTP/1.1
+x-user-id: {{attendeeId}}
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "quantity": 1
+}
+
+### [tickets-service] My tickets
+GET {{ticketsServiceUrl}}/my-tickets HTTP/1.1
+x-user-id: {{attendeeId}}
+
+### [tickets-service] Get ticket by id
+GET {{ticketsServiceUrl}}/{{ticketId}} HTTP/1.1
+x-user-id: {{attendeeId}}
+
+### [tickets-service] Cancel ticket
+POST {{ticketsServiceUrl}}/{{ticketToCancelId}}/cancel HTTP/1.1
+x-user-id: {{attendeeId}}
+
+### [tickets-service] Check in ticket
+POST {{ticketsServiceUrl}}/check-in HTTP/1.1
+x-user-id: {{organiserId}}
+Content-Type: application/json
+
+{
+  "ticketCode": "{{ticketCode}}"
+}
+
+### [tickets-service] List tickets for an event
+GET {{ticketsServiceUrl}}/event/{{eventId}} HTTP/1.1
+x-user-id: {{organiserId}}
+
+
+# --------------- Notification service (:3006) -----------------
+
+### [notification-service] Health check
+GET {{notificationServiceUrl}}/health HTTP/1.1
