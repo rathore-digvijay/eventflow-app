@@ -42,13 +42,4 @@
       ]
     }
   },
-  "include": [
-    "apps/**/*",
-    "libs/**/*",
-    "*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
 }

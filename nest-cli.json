@@ -63,6 +63,24 @@
       "compilerOptions": {
         "tsConfigPath": "libs/kafka/tsconfig.lib.json"
       }
+    },
+    "notification-service": {
+      "type": "application",
+      "root": "apps/notification-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/notification-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/notification-service/tsconfig.app.json"
+      }
+    },
+    "tickets-service": {
+      "type": "application",
+      "root": "apps/tickets-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/tickets-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/tickets-service/tsconfig.app.json"
+      }
     }
   }
 }
